@@ -1,0 +1,27 @@
+import { Request, Response, NextFunction } from "express";
+import * as jwt from "jsonwebtoken";
+
+const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.headers.authorization) {
+      res.status(404).json({
+        status: "failed",
+        message: "There is no token to authorize!",
+      });
+    } else {
+      const bearerToken = req.headers.authorization.split(" ")[1];
+
+      const decoded = jwt.verify(bearerToken, process.env.SECRET!);
+
+      const user_id = (decoded as any).user_id;
+
+      res.locals.user_id = user_id;
+      next();
+    }
+  } catch (error) {
+    res.locals.auth_error = error;
+    next();
+  }
+};
+
+export default verifyAuth;
