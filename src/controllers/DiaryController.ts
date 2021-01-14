@@ -7,14 +7,15 @@ class DiaryController {
       if (res.locals.auth_error) {
         // send that error
         res.status(404).json({
-          status: "failed",
+          status: "error",
           message: res.locals.auth_error,
         });
       } else {
         const user_id = res.locals.user_id;
 
         const diariesData = await pool.query(
-          `SELECT * FROM diary WHERE user_id='${user_id}';`,
+          `SELECT * FROM diary WHERE user_id=$1;`,
+          [user_id],
         );
 
         res.status(200).json({
@@ -25,7 +26,7 @@ class DiaryController {
       }
     } catch (error) {
       res.status(404).json({
-        status: "failed",
+        status: "error",
         message: error,
       });
     }
@@ -35,7 +36,7 @@ class DiaryController {
     try {
       if (res.locals.auth_error) {
         res.status(404).json({
-          status: "failed",
+          status: "error",
           message: res.locals.auth_error,
         });
       } else {
@@ -44,7 +45,8 @@ class DiaryController {
         const diary_id = req.params.id;
 
         const diaryData = await pool.query(
-          `SELECT * FROM diary WHERE diary_id='${diary_id}';`,
+          `SELECT * FROM diary WHERE diary_id=$1;`,
+          [diary_id],
         );
 
         res.status(200).json({
@@ -60,7 +62,7 @@ class DiaryController {
         });
       } else {
         res.status(404).json({
-          status: "failed",
+          status: "error",
           message: error,
         });
       }
@@ -73,15 +75,16 @@ class DiaryController {
       if (res.locals.auth_error) {
         // send that error
         res.status(404).json({
-          status: "failed",
+          status: "error",
           message: res.locals.auth_error,
         });
       } else {
-        const user_id = res.locals.user_id;
+        const { user_id, email_id } = res.locals.user;
         const { diary_title, diary_body, diary_mood } = req.body;
 
         const result = await pool.query(
-          `INSERT INTO diary (user_id, diary_title, diary_body, diary_created_at, diary_updated_at, diary_mood) VALUES ('${user_id}', '${diary_title}', '${diary_body}', NOW(), NOW(), '${diary_mood}') RETURNING diary_id, diary_title;`,
+          "INSERT INTO diary (user_id, user_email, diary_title, diary_body, diary_updated_at, diary_mood) VALUES($1, $2, $3, $4, NOW(), $5) RETURNING *;",
+          [user_id, email_id, diary_title, diary_body, diary_mood],
         );
 
         res.status(201).json({
@@ -91,7 +94,7 @@ class DiaryController {
       }
     } catch (error) {
       res.status(404).json({
-        status: "failed",
+        status: "error",
         message: error,
       });
     }
@@ -101,7 +104,7 @@ class DiaryController {
     try {
       if (res.locals.auth_error) {
         res.status(404).json({
-          status: "failed",
+          status: "error",
           message: res.locals.auth_error,
         });
       } else {
@@ -118,7 +121,8 @@ class DiaryController {
           for (let key in req.body) {
             // update individual item
             let updated = await pool.query(
-              `UPDATE diary SET ${key}='${req.body[key]}', diary_updated_at=NOW() WHERE diary_id='${diary_id}';`,
+              `UPDATE diary SET $1=$2, diary_updated_at=NOW() WHERE diary_id=$3;`,
+              [key, req.body[key], diary_id],
             );
 
             updatedStack.push(key);
@@ -138,7 +142,7 @@ class DiaryController {
         });
       } else {
         res.status(404).json({
-          status: "failed",
+          status: "error",
           message: error,
         });
       }
@@ -149,14 +153,15 @@ class DiaryController {
     try {
       if (res.locals.auth_error) {
         res.status(404).json({
-          status: "failed",
+          status: "error",
           message: res.locals.auth_error,
         });
       } else {
         const diary_id = req.params.id;
 
         const result = await pool.query(
-          `DELETE FROM diary WHERE diary_id='${diary_id}' RETURNING 1;`,
+          `DELETE FROM diary WHERE diary_id=$1 RETURNING 1;`,
+          [diary_id],
         );
         if (!result.rowCount) {
           res.status(200).json({
@@ -178,7 +183,7 @@ class DiaryController {
         });
       } else {
         res.status(404).json({
-          status: "failed",
+          status: "error",
           message: error,
         });
       }

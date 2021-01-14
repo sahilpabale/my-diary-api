@@ -1,1 +1,1 @@
-# my-diary-api
+# Diary App API

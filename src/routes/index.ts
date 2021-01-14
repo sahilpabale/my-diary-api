@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import UserController from "../controllers/UserControllers";
 import DiaryController from "../controllers/DiaryController";
 import verifyAuth from "../middlewares/verifyAuth";
+import verifyEmail from "../utils/verifyEmail";
 
 const router = Router();
 
@@ -27,5 +28,10 @@ router.get("/diary/:id", verifyAuth, diaryController.getDiary);
 router.post("/diary", verifyAuth, diaryController.createDiary);
 router.patch("/diary/:id", verifyAuth, diaryController.updateDiary);
 router.delete("/diary/:id", verifyAuth, diaryController.deleteDiary);
+
+// Email Verify Route
+const verifyMail = new verifyEmail();
+
+router.get("/confirm/:token", verifyMail.verify);
 
 export default router;

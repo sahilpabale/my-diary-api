@@ -13,13 +13,15 @@ const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
 
       const decoded = jwt.verify(bearerToken, process.env.SECRET!);
 
-      const user_id = (decoded as any).user_id;
+      const { user_id, email_id } = decoded as any;
 
-      res.locals.user_id = user_id;
+      res.locals.user = { user_id, email_id };
+
       next();
     }
   } catch (error) {
     res.locals.auth_error = error;
+
     next();
   }
 };
