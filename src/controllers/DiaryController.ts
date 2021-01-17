@@ -4,14 +4,14 @@ import { Request, Response } from "express";
 class DiaryController {
   public getAllDiaries = async (req: Request, res: Response) => {
     try {
-      if (res.locals.auth_error) {
+      if (req.error) {
         // send that error
         res.status(404).json({
           status: "error",
-          message: res.locals.auth_error,
+          message: req.error,
         });
       } else {
-        const user_id = res.locals.user_id;
+        const user_id = req.user.user_id;
 
         const diariesData = await pool.query(
           `SELECT * FROM diary WHERE user_id=$1;`,
@@ -34,10 +34,10 @@ class DiaryController {
 
   public getDiary = async (req: Request, res: Response) => {
     try {
-      if (res.locals.auth_error) {
+      if (req.error) {
         res.status(404).json({
           status: "error",
-          message: res.locals.auth_error,
+          message: req.error,
         });
       } else {
         // const user_id = res.locals.user_id;
@@ -72,14 +72,14 @@ class DiaryController {
 
   public createDiary = async (req: Request, res: Response) => {
     try {
-      if (res.locals.auth_error) {
+      if (req.error) {
         // send that error
         res.status(404).json({
           status: "error",
-          message: res.locals.auth_error,
+          message: req.error,
         });
       } else {
-        const { user_id, email_id } = res.locals.user;
+        const { user_id, email_id } = req.user;
         const { diary_title, diary_body, diary_mood } = req.body;
 
         const result = await pool.query(
@@ -102,10 +102,10 @@ class DiaryController {
 
   public updateDiary = async (req: Request, res: Response) => {
     try {
-      if (res.locals.auth_error) {
+      if (req.error) {
         res.status(404).json({
           status: "error",
-          message: res.locals.auth_error,
+          message: req.error,
         });
       } else {
         const diary_id = req.params.id;
@@ -151,10 +151,10 @@ class DiaryController {
 
   public deleteDiary = async (req: Request, res: Response) => {
     try {
-      if (res.locals.auth_error) {
+      if (req.error) {
         res.status(404).json({
           status: "error",
-          message: res.locals.auth_error,
+          message: req.error,
         });
       } else {
         const diary_id = req.params.id;

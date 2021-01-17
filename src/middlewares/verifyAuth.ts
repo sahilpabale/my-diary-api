@@ -15,13 +15,12 @@ const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
 
       const { user_id, email_id } = decoded as any;
 
-      res.locals.user = { user_id, email_id };
-
+      // res.locals.user = { user_id, email_id };
+      req.user = { user_id, email_id };
       next();
     }
   } catch (error) {
-    res.locals.auth_error = error;
-
+    req.error = error;
     next();
   }
 };

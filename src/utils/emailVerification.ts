@@ -2,9 +2,9 @@ import * as jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { Request, Response } from "express";
 import pool from "../config/db";
-import emailVerify from "./isEmailVerified";
+import isAccountVerified from "./isAccountVerified";
 
-class verifyEmail {
+class emailVerification {
   public send = (email: string) => {
     const token = jwt.sign({ email }, process.env.SECRET!, { expiresIn: "1d" });
 
@@ -53,7 +53,7 @@ class verifyEmail {
 
       const email_id = (decoded as DecodedMail).email;
 
-      if (await emailVerify(email_id)) {
+      if (await isAccountVerified(email_id)) {
         res.status(404).json({
           status: "failed",
           message: "Your account is already verified!",
@@ -70,11 +70,11 @@ class verifyEmail {
       }
     } catch (error) {
       res.status(404).json({
-        status: "failed",
+        status: "error",
         message: error,
       });
     }
   };
 }
 
-export default verifyEmail;
+export default emailVerification;

@@ -2,8 +2,9 @@ import pool from "../config/db";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
-import emailVerified from "../utils/isEmailVerified";
-import verifyEmail from "../utils/verifyEmail";
+import emailVerified from "../utils/isAccountVerified";
+import verifyEmail from "../utils/emailVerification";
+import isRegistered from "../utils/isRegistered";
 
 const sendMail = new verifyEmail().send;
 
@@ -14,12 +15,7 @@ class UserController {
       const { full_name, email_id, password } = req.body;
 
       // check if user exists
-      // if yes then respond with error
-      const checkEmail = await pool.query(
-        `SELECT 1 FROM users WHERE email_id=$1;`,
-        [email_id],
-      );
-      if (checkEmail.rowCount) {
+      if (await isRegistered(email_id)) {
         res.status(404).json({
           status: "failed",
           message: "Account already exists!",
@@ -55,14 +51,11 @@ class UserController {
     try {
       // get user details
       const { email_id, password } = req.body;
-      if (await emailVerified(email_id)) {
-        const checkUser = await pool.query(
-          `SELECT * FROM users WHERE email_id=$1;`,
-          [email_id],
-        );
-        if (checkUser.rowCount) {
-          const hashPass = checkUser.rows[0].password;
-          const user_id = checkUser.rows[0].user_id;
+      const user = await isRegistered(email_id);
+      if (user) {
+        if (await emailVerified(email_id)) {
+          const hashPass = user.rows[0].password;
+          const user_id = user.rows[0].user_id;
           // verify passwords
           const passMatch = await bcrypt.compare(password, hashPass);
           if (passMatch) {
@@ -92,13 +85,13 @@ class UserController {
           // user not present throw error
           res.status(404).json({
             status: "failed",
-            message: "User doesn't exists! Create a new account",
+            message: "Your account is not verified yet!",
           });
         }
       } else {
         res.status(404).json({
           status: "failed",
-          message: "Your account is not verified yet!",
+          message: "User doesn't exists! Create a new account",
         });
       }
     } catch (error) {
@@ -112,13 +105,13 @@ class UserController {
   // USER DETAILS CONTROLLER
   public users = async (req: Request, res: Response) => {
     try {
-      if (res.locals.auth_error) {
+      if (req.error) {
         res.status(404).json({
           status: "error",
-          message: res.locals.auth_error,
+          message: req.error,
         });
       } else {
-        const { user_id } = res.locals.user;
+        const { user_id } = req.user;
 
         // retreive user data from DB
         const userData = await pool.query(

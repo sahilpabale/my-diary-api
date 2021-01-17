@@ -2,7 +2,7 @@ dist
 node_modules
 
 db.sql
-Localhost - My Diary App.session.sql
+
 
 .env
 .vscode

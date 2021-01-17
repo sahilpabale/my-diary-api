@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import UserController from "../controllers/UserControllers";
 import DiaryController from "../controllers/DiaryController";
 import verifyAuth from "../middlewares/verifyAuth";
-import verifyEmail from "../utils/verifyEmail";
+import verifyEmail from "../utils/emailVerification";
 
 const router = Router();
 
